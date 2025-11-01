@@ -1,13 +1,40 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from 'react-redux';
+import { addFavorite, removeFavorites } from '../../store/slices/favoritesSlice';
 
 function WeatherCard({ weatherData, onClick }) {
+  const dispatch = useDispatch();
   const tempUnit = useSelector((state) => state.settings.tempUnit)
+  const favorites = useSelector((state) => state.favorites.cities);
+  console.log(favorites);
+
   const { location, current } = weatherData;
 
   const temperature = tempUnit === "C" ? current.temp_c : current.temp_f;
   const feelsLike =
     tempUnit === "C" ? current.feelslike_c : current.feelslike_f;
+
+  // Check if this city is in favorites
+  const isFavorite = favorites.some(fav => fav.name === location.name);
+
+  // Toggle favorite status
+  const handleFavoriteClick = (e) => {
+    e.stopPropagation(); // Prevent card click event
+
+    if (isFavorite) {
+      console.log('clicked')
+      dispatch(removeFavorites(location.name));
+    } else {
+      dispatch(addFavorite({
+        name: location.name,
+        country: location.country,
+        region: location.region,
+        lat: location.lat,
+        lon: location.lon,
+      }));
+    }
+  };
+
   return (
     <div
       onClick={onClick}
@@ -26,10 +53,23 @@ function WeatherCard({ weatherData, onClick }) {
     text-white
   "
     >
-     
-      <div className="absolute inset-0 bg-white/5 backdrop-blur-[2px] pointer-events-none" />
+      {/* soft background overlay (behind content) */}
+      <div className="absolute inset-0 bg-white/5 backdrop-blur-[2px] pointer-events-none z-0" />
 
+      {/* Favorite Button (above everything) */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();         // prevent parent onClick
+          handleFavoriteClick(e);      // your handler (keep signature)
+        }}
+        className="absolute top-4 right-4 text-2xl hover:scale-110 transition-transform z-20"
+        aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        type="button"
+      >
+        {isFavorite ? '⭐' : '☆'}
+      </button>
 
+      {/* Main content (above overlay, below button) */}
       <div className="relative z-10 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-lg sm:text-xl font-semibold leading-tight">
@@ -40,7 +80,6 @@ function WeatherCard({ weatherData, onClick }) {
           </p>
         </div>
 
- 
         <div className="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-sm font-medium">
           <img
             src={`https:${current.condition.icon}`}
@@ -117,7 +156,7 @@ function WeatherCard({ weatherData, onClick }) {
 
       {/* subtle decorative gradient shapes */}
       <svg
-        className="absolute -right-6 -top-6 opacity-20 w-36 h-36"
+        className="absolute -right-6 -top-6 opacity-20 w-36 h-36 z-5 pointer-events-none"
         viewBox="0 0 100 100"
         fill="none"
         aria-hidden
@@ -131,6 +170,7 @@ function WeatherCard({ weatherData, onClick }) {
         <circle cx="50" cy="50" r="40" fill="url(#g1)" />
       </svg>
     </div>
+
   );
 }
 

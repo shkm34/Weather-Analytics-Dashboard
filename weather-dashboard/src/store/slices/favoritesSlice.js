@@ -10,9 +10,11 @@ const favoritesSlice = createSlice({
   reducers: {
     // add cities to favorites
     addFavorite: (state, action) => {
+      // check if city already exists
       const cityExists = state.cities.some(
         // action.payload = { name: , country: , lat: }
-        (city) => city.name === action.payload.name
+        (city) => city.lat === action.payload.lat && 
+        city.lon === action.payload.lon
       );
 
       if (!cityExists) {
@@ -23,7 +25,8 @@ const favoritesSlice = createSlice({
     // Remove city from favorites
     removeFavorites: (state, action) => {
       // action.payload = city_name
-      state.cities.filter((city) => city.name !== action.payload);
+      console.log('removing', action.payload);
+      state.cities = state.cities.filter((city) => city.name !== action.payload);
     },
 
     // Clear all favorites

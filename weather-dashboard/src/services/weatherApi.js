@@ -11,21 +11,18 @@ const weatherApiClient = axios.create({
   },
 });
 
-console.log("BASE_URL", BASE_URL);
-console.log("axios baseURL", weatherApiClient.defaults.baseURL);
-
 // response interceptor for logging and error
 weatherApiClient.interceptors.response.use(
   (response) => {
     if (import.meta.env.DEV) {
-      console.log("API Success:", response.config.url);
+      //console.log("API Success:", response.config.url);
     }
     return response;
   },
 
   (error) => {
     if (import.meta.env.DEV) {
-      console.error("API Error:", error.response?.data || error.message);
+      //console.error("API Error:", error.response?.data || error.message);
     }
     else if (error.response?.status === 404) {
       throw new Error("City not found");
@@ -44,7 +41,6 @@ export const getCurrentWeather = async (city) => {
     const response = await weatherApiClient.get("/current.json", {
       params: { q: city },
     });
-    console.log(response.data);
     return response.data;
   } catch (error) {
     throw new Error(
