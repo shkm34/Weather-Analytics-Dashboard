@@ -1,98 +1,81 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import WeatherCard from '../components/weather/WeatherCard.jsx'
 import WeatherCardSkeleton from '../components/weather/WeatherCardSkeleton.jsx'
+import { getCurrentWeather } from '../services/weatherApi.js'
 function Dashboard() {
 
-  const isLoading = false; 
+  const [weatherData, setWeatherData] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const mockWeatherData = [
-    {
-      location: {
-        name: "London",
-        country: "United Kingdom"
-      },
-      current: {
-        temp_c: 12.0,
-        temp_f: 53.6,
-        feelslike_c: 10.5,
-        feelslike_f: 50.9,
-        humidity: 82,
-        wind_kph: 13.0,
-        cloud: 75,
-        condition: {
-          text: "Partly cloudy",
-          icon: "//cdn.weatherapi.com/weather/64x64/day/116.png"
-        }
-      }
-    },
-    {
-      location: {
-        name: "New York",
-        country: "United States"
-      },
-      current: {
-        temp_c: 18.0,
-        temp_f: 64.4,
-        feelslike_c: 16.0,
-        feelslike_f: 60.8,
-        humidity: 65,
-        wind_kph: 20.0,
-        cloud: 50,
-        condition: {
-          text: "Clear",
-          icon: "//cdn.weatherapi.com/weather/64x64/day/113.png"
-        }
-      }
-    },
-    {
-      location: {
-        name: "Tokyo",
-        country: "Japan"
-      },
-      current: {
-        temp_c: 22.0,
-        temp_f: 71.6,
-        feelslike_c: 21.0,
-        feelslike_f: 69.8,
-        humidity: 70,
-        wind_kph: 15.0,
-        cloud: 25,
-        condition: {
-          text: "Sunny",
-          icon: "//cdn.weatherapi.com/weather/64x64/day/113.png"
-        }
+  const defaultCities = ['New Delhi', 'Kolkata', 'Mumbai']
+
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        // fetch weather for default cities
+        const promises = defaultCities.map(city =>
+          getCurrentWeather(city)
+        )
+
+        const results = await Promise.all(promises)
+        setWeatherData(results)
+
+      } catch (error) {
+        setError(error.message)
+        console.error('Failed to fetch weather:', error);
+      } finally {
+        setLoading(false)
       }
     }
-  ];
+
+    fetchWeatherData()
+  }, [])
 
   return (
     <div>
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">
-        My Cities
-      </h2>
-      
-      {/* Weather cards will go here */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {isLoading ? (
-  <>
-    <WeatherCardSkeleton />
-    <WeatherCardSkeleton />
-    <WeatherCardSkeleton />
-  </>
-) : (
- 
-        mockWeatherData.map((data) => (
-          <WeatherCard 
-            key={data.location.name}
-            weatherData={data}
-            tempUnit="C"
-            onClick={() => alert(`Clicked ${data.location.name}`)}
-          />
-        ))
-)}
-        
+  <h2 className="text-3xl font-bold text-gray-800 mb-6">
+    My Cities
+  </h2>
+
+  {/* Weather cards grid */}
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {/* Loading skeletons */}
+    {loading && [1, 2, 3].map((i) => (
+      <WeatherCardSkeleton key={i} />
+    ))}
+
+    {/* Error state */}
+    {error && (
+      <div className="col-span-full bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+        <p className="text-red-600 font-semibold mb-2">
+          ⚠️ Failed to load weather data
+        </p>
+        <p className="text-gray-600 text-sm mb-4">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+        >
+          Retry
+        </button>
       </div>
-    </div>
+    )}
+
+    {/* Weather cards */}
+    {!loading && !error && weatherData.map((data) => (
+      <WeatherCard
+        key={data.location.name}
+        weatherData={data}
+        tempUnit="C"
+        onClick={() => alert(`Clicked ${data.location.name}`)}
+      />
+    ))}
+  </div>
+</div>
+
   )
 }
 
