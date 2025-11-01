@@ -1,5 +1,5 @@
-const API_KEY = import.meta.env.VITE_WEATHER_API_KEY || 'c62540a5fc7b45ed9a3154334253110';
-const BASE_URL = import.meta.env.VITE_WEATHER_API_BASE_URL || 'http://api.weatherapi.com/v1';
+const API_KEY = import.meta.env.VITE_WEATHER_API_KEY;
+const BASE_URL = import.meta.env.VITE_WEATHER_API_BASE_URL;
 import axios from "axios";
 
 // create axios instance
@@ -11,8 +11,8 @@ const weatherApiClient = axios.create({
   },
 });
 
-console.log('BASE_URL', BASE_URL);
-console.log('axios baseURL', weatherApiClient.defaults.baseURL);
+console.log("BASE_URL", BASE_URL);
+console.log("axios baseURL", weatherApiClient.defaults.baseURL);
 
 // response interceptor for logging and error
 weatherApiClient.interceptors.response.use(
@@ -27,6 +27,13 @@ weatherApiClient.interceptors.response.use(
     if (import.meta.env.DEV) {
       console.error("API Error:", error.response?.data || error.message);
     }
+    else if (error.response?.status === 404) {
+      throw new Error("City not found");
+    } else if (error.response?.status === 403) {
+      throw new Error("API quota exceeded");
+    } else {
+      throw new Error("Something went wrong");
+    }
     return Promise.reject(error);
   }
 );
@@ -37,7 +44,7 @@ export const getCurrentWeather = async (city) => {
     const response = await weatherApiClient.get("/current.json", {
       params: { q: city },
     });
-    console.log(response.data)
+    console.log(response.data);
     return response.data;
   } catch (error) {
     throw new Error(

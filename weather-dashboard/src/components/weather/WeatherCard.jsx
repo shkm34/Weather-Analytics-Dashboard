@@ -1,6 +1,8 @@
 import React from "react";
+import { useSelector } from "react-redux";
 
-function WeatherCard({ weatherData, tempUnit = "C", onClick }) {
+function WeatherCard({ weatherData, onClick }) {
+  const tempUnit = useSelector((state) => state.settings.tempUnit)
   const { location, current } = weatherData;
 
   const temperature = tempUnit === "C" ? current.temp_c : current.temp_f;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import WeatherCard from '../components/weather/WeatherCard.jsx'
 import WeatherCardSkeleton from '../components/weather/WeatherCardSkeleton.jsx'
 import { getCurrentWeather } from '../services/weatherApi.js'
@@ -8,7 +8,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const defaultCities = ['New Delhi', 'Kolkata', 'Mumbai']
+  const defaultCities = useMemo(() => ['New Delhi', 'Kolkata', 'Mumbai'], [])
 
   useEffect(() => {
     const fetchWeatherData = async () => {
@@ -33,7 +33,7 @@ function Dashboard() {
     }
 
     fetchWeatherData()
-  }, [])
+  }, [defaultCities])
 
   return (
     <div>
@@ -69,7 +69,6 @@ function Dashboard() {
       <WeatherCard
         key={data.location.name}
         weatherData={data}
-        tempUnit="C"
         onClick={() => alert(`Clicked ${data.location.name}`)}
       />
     ))}
