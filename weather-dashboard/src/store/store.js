@@ -2,7 +2,7 @@ import { configureStore } from "@reduxjs/toolkit";
 import settingsReducer from "./slices/settingsSlice";
 import favoritesReducer from "./slices/favoritesSlice";
 import { loadState, saveState } from '../utils/localStorage';
-
+import weatherCacheReducer from './slices/weatherCacheSlice'
 // Load persisted state
 const persistedFavorites = loadState('favorites');
 const persistedSettings = loadState('settings');
@@ -11,6 +11,7 @@ const store = configureStore({
     reducer: {
         settings: settingsReducer,
         favorites: favoritesReducer,
+        weatherCache: weatherCacheReducer
     },
 
     preloadedState: {

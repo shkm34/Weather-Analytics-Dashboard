@@ -3,13 +3,26 @@ import {
   toggleTempUnit,
   setTempUnit,
   setTheme,
- // resetSettings,
+  // resetSettings,
 } from "../store/slices/settingsSlice";
 import FavoritesManager from "../components/settings/FavoritesManager";
+import {
+  clearAllCache,
+  selectCacheAge,
+} from "../store/slices/weatherCacheSlice";
 
 function Settings() {
   const dispatch = useDispatch();
   const { tempUnit, theme } = useSelector((state) => state.settings);
+
+  const cacheState = useSelector((state) => state.weatherCache.cache);
+  const cacheKeys = Object.keys(cacheState);
+
+  const handleClearCache = () => {
+    if (window.confirm("Clear all cached weather data?")) {
+      dispatch(clearAllCache());
+    }
+  };
 
   return (
     <div className="max-w-xl mx-auto">
@@ -141,6 +154,43 @@ function Settings() {
         </div>
       </div>
 
+      {/* Cache Management Section */}
+      <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-1">
+              Cache Management
+            </h3>
+            <p className="text-sm text-gray-600">Manage cached weather data</p>
+          </div>
+          <div className="text-4xl">💾</div>
+        </div>
+
+        <div className="mb-4">
+          <p className="text-gray-700 mb-2">
+            <strong>Cached Items:</strong> {cacheKeys.length}
+          </p>
+          <p className="text-sm text-gray-600 mb-4">
+            Weather data is cached for 60 seconds to reduce API calls and
+            improve performance.
+          </p>
+
+          {cacheKeys.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {cacheKeys.map((key) => {
+                return (
+                  <span
+                    key={key}
+                    className="px-3 py-1 border border-red-300 bg-red-100 rounded-full text-xs font-medium text-red-800"
+                  >
+                    {key}
+                  </span>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { getForecast } from "../services/weatherApi";
+import { getCachedForecast } from '../services/cachedWeatherApi';
 import TemperatureChart from "../components/charts/TemperatureChart";
 import PrecipitationChart from "../components/charts/PrecipitationChart";
 import WindChart from "../components/charts/WindChart";
@@ -29,7 +29,7 @@ function DetailedView() {
         if (!cityName) throw new Error("No city specified");
 
         const decodedCity = decodeURIComponent(cityName);
-        const data = await getForecast(decodedCity, 7);
+        const data = await getCachedForecast(decodedCity, 7);
 
         setForecastData(data);
       } catch (err) {

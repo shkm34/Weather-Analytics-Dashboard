@@ -1,0 +1,84 @@
+import { createSlice } from '@reduxjs/toolkit';
+
+const initialState = {
+  cache: {},
+  // Structure:
+  // {
+  //   "current_London": {
+  //     data: {...},
+  //     timestamp: 1698765432000,
+  //     expiresAt: 1698765492000
+  //   }
+  // }
+};
+
+const weatherCacheSlice = createSlice({
+  name: 'weatherCache',
+  initialState,
+  reducers: {
+    setCacheData: (state, action) => {
+      const {key, data, ttl = 60000} = action.payload
+      const now = Date.now();
+
+      state.cache[key] = {
+        data,
+        timestamp: now,
+        expiresAt: now + ttl
+      }
+    },
+
+    removeCacheData: (state, action) => {
+      const {key} = action.payload
+      delete state.cache[key]
+    },
+
+    clearExpiredCache: (state) => {
+        const now = Date.now()
+        Object.keys(state.cache).forEach((key)=>{
+            if(state.cache.expiresAt < now){
+                delete state.cache[key]
+            }
+        })    
+    },
+
+    clearAllcache: (state) => {
+        state.cache = {}
+    }
+  },
+});
+
+export const { 
+  setCacheData, 
+  removeCacheData, 
+  clearExpiredCache, 
+  clearAllCache 
+} = weatherCacheSlice.actions;
+
+
+// Selectors
+export const selectCacheData = (state, key) => {
+  const cached = state.weatherCache.cache[key];
+  
+  if (!cached) {
+    return null;
+  }
+  
+  // Check if cache is still valid
+  if (cached.expiresAt < Date.now()) {
+    return null; // Expired
+  }
+  
+  return cached.data;
+};
+
+export const selectCacheAge = (state, key) => {
+  const cached = state.weatherCache.cache[key];
+  
+  if (!cached) {
+    return null;
+  }
+  
+  return Date.now() - cached.timestamp;
+};
+
+export default weatherCacheSlice.reducer;
