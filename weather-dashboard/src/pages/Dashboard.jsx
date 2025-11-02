@@ -6,12 +6,14 @@ import { useSelector } from "react-redux";
 import { getCachedCurrentWeather } from "../services/cachedWeatherApi";
 
 function Dashboard() {
-  const [weatherData, setWeatherData] = useState([]);
+  const [favoriteWeatherData, setFavoriteWeatherData] = useState([]);
+  const [recentWeatherData, setRecentWeatherData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  const favorites = useSelector((state) => state.favorites.cities);
+  // defensive selector: ensure favorites is always an array
+  const favorites = useSelector((state) => state.favorites?.cities ?? []);
 
   const fetchWeatherData = useCallback(async () => {
     try {
@@ -36,7 +38,7 @@ function Dashboard() {
       );
 
       const results = await Promise.all(promises);
-      setWeatherData(results);
+      setFavoriteWeatherData(results);
       setLastUpdated(new Date());
     } catch (error) {
       setError(error.message);
@@ -65,13 +67,11 @@ function Dashboard() {
 
   const handleCitySelect = async (city) => {
     try {
-      // Check if city is already in weatherData
-      // to avoid duplicate cards
+      // Check if city is already in weatherData (favorites OR recent)
+      const normalize = (str) =>
+        (typeof str === "string" ? str.toLowerCase().trim() : "");
 
-      const isDuplicate = (objA, objB) => {
-        // Helper function to clean the strings
-        const normalize = (str) => str.toLowerCase().trim();
-
+      const isDuplicate = (objA = {}, objB = {}) => {
         return (
           normalize(objA.name) === normalize(objB.name) &&
           normalize(objA.region) === normalize(objB.region) &&
@@ -79,16 +79,22 @@ function Dashboard() {
         );
       };
 
-      const isCityInWeatherData = weatherData.some((data) =>
+      const isInFavorites = favoriteWeatherData.some((data) =>
         isDuplicate(data.location, city)
       );
 
-      if (isCityInWeatherData) {
+      const isInRecent = recentWeatherData.some((data) =>
+        isDuplicate(data.location, city)
+      );
+
+      if (isInFavorites || isInRecent) {
+        // already present in either list — do nothing
         return;
       }
-      // Fetch weather for this city
+
+      // Fetch weather for this city and add to recent
       const weather = await getCachedCurrentWeather(`${city.lat},${city.lon}`);
-      setWeatherData((prev) => [weather, ...prev]);
+      setRecentWeatherData((prev) => [weather, ...prev]);
     } catch (err) {
       console.error("Failed to add city:", err);
     }
@@ -136,35 +142,68 @@ function Dashboard() {
         <SearchBar onCitySelect={handleCitySelect} />
       </div>
 
-      {/* Weather cards grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Loading skeletons */}
-        {loading && [1, 2, 3].map((i) => <WeatherCardSkeleton key={i} />)}
+      {/* Favorites section */}
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold">Favorites</h3>
+        </div>
 
-        {/* Error state */}
-        {error && (
-          <div className="col-span-full bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-            <p className="text-red-600 font-semibold mb-2">
-              ⚠️ Failed to load weather data
-            </p>
-            <p className="text-gray-600 text-sm mb-4">{error}</p>
-            <button
-              onClick={handleRefresh}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-            >
-              Retry
-            </button>
-          </div>
-        )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Loading skeletons (only show while initial loading) */}
+          {loading && [1, 2, 3].map((i) => <WeatherCardSkeleton key={`fav-skel-${i}`} />)}
 
-        {/* Weather cards */}
-        {!loading &&
-          !error &&
-          weatherData.length > 0 &&
-          weatherData.map((data) => (
-            <WeatherCard key={data.location.name} weatherData={data} />
-          ))}
-      </div>
+          {/* Error state */}
+          {error && (
+            <div className="col-span-full bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+              <p className="text-red-600 font-semibold mb-2">
+                ⚠️ Failed to load weather data
+              </p>
+              <p className="text-gray-600 text-sm mb-4">{error}</p>
+              <button
+                onClick={handleRefresh}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+              >
+                Retry
+              </button>
+            </div>
+          )}
+
+          {/* Favorite cities' weather cards */}
+          {!loading &&
+            !error &&
+            favoriteWeatherData.length > 0 &&
+            favoriteWeatherData.map((data) =>
+              data && data.location ? (
+                <WeatherCard
+                  key={`${data.location.name}-${data.location.country}`}
+                  weatherData={data}
+                />
+              ) : null
+            )}
+        </div>
+      </section>
+
+      {/* Recent searches section */}
+      <section>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold">Recent</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {recentWeatherData.length === 0 ? (
+            <p className="text-sm text-gray-500 col-span-full">No recent searches</p>
+          ) : (
+            recentWeatherData.map((data) =>
+              data && data.location ? (
+                <WeatherCard
+                  key={`${data.location.name}-${data.location.country}`}
+                  weatherData={data}
+                />
+              ) : null
+            )
+          )}
+        </div>
+      </section>
     </div>
   );
 }
