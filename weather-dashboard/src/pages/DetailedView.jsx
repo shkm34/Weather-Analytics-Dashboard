@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { getCachedForecast } from '../services/cachedWeatherApi';
+import { getCachedForecast } from "../services/cachedWeatherApi";
 import TemperatureChart from "../components/charts/TemperatureChart";
 import PrecipitationChart from "../components/charts/PrecipitationChart";
 import WindChart from "../components/charts/WindChart";
@@ -19,28 +19,46 @@ function DetailedView() {
   const [forecastData, setForecastData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
-  useEffect(() => {
-    const fetchForecast = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  const fetchForecast = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
 
-        if (!cityName) throw new Error("No city specified");
+      if (!cityName) throw new Error("No city specified");
 
-        const decodedCity = decodeURIComponent(cityName);
-        const data = await getCachedForecast(decodedCity, 7);
+      const decodedCity = decodeURIComponent(cityName);
+      const data = await getCachedForecast(decodedCity, 7);
 
-        setForecastData(data);
-      } catch (err) {
-        setError(err.message || "Failed to fetch forecast");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchForecast();
+      setForecastData(data);
+      setLastUpdated(new Date());
+    } catch (err) {
+      setError(err.message || "Failed to fetch forecast");
+    } finally {
+      setIsLoading(false);
+    }
   }, [cityName]);
+  useEffect(() => {
+    fetchForecast();
+  }, [fetchForecast]);
+
+  // useEffect for auto-refresh 60 seconds
+  useEffect(() => {
+    fetchForecast();
+
+    const refreshInterval = setInterval(() => {
+      console.log("🔄 Auto-refreshing weather data...");
+      fetchForecast();
+    }, 60000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(refreshInterval);
+  }, [fetchForecast]);
+
+  const handleRefresh = () => {
+    fetchForecast();
+  };
 
   if (isLoading && !forecastData) {
     return (
@@ -81,14 +99,42 @@ function DetailedView() {
   return (
     <>
       <div className="max-w-7xl mx-auto">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate("/")}
-          className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-800 transition"
-        >
-          <span className="text-xl">←</span>
-          <span>Back to Dashboard</span>
-        </button>
+
+        {/* Controls & Status Group */}
+        <div className="flex flex-wrap items-center justify-between gap-4 py-2">
+          {/* Back Button*/}
+          <button
+            onClick={() => navigate("/")}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition mb-2 sm:mb-0"
+          >
+            <span className="text-xl">←</span>
+            <span>Back to Dashboard</span>
+          </button>
+
+          {/* Status and Refresh Group */}
+          <div className="flex items-center gap-4 flex-wrap justify-end">
+            {/* Last Updated Status */}
+            {lastUpdated && (
+              <div className="text-right">
+                <p className="text-sm text-gray-500">
+                  Last updated: {lastUpdated.toLocaleTimeString()}
+                </p>
+                <p className="text-xs text-gray-500">
+                  (Auto-refreshes every 60s)
+                </p>
+              </div>
+            )}
+
+            {/* Refresh Button*/}
+            <button
+              onClick={handleRefresh}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center gap-2 font-medium whitespace-nowrap"
+            >
+              <span>🔄</span>
+              <span>Refresh</span>
+            </button>
+          </div>
+        </div>
 
         {/* City Header */}
         <div className="bg-linear-to-r from-blue-500 to-blue-600 rounded-xl p-8 text-white mb-8">
