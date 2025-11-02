@@ -1,66 +1,148 @@
-import React from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { toggleTempUnit, setTempUnit } from '../store/slices/settingsSlice'
+import { useSelector, useDispatch } from "react-redux";
+import {
+  toggleTempUnit,
+  setTempUnit,
+  setTheme,
+ // resetSettings,
+} from "../store/slices/settingsSlice";
+import FavoritesManager from "../components/settings/FavoritesManager";
 
 function Settings() {
-  const dispatch = useDispatch()
-  const tempUnit = useSelector((state)=> state.settings.tempUnit)
+  const dispatch = useDispatch();
+  const { tempUnit, theme } = useSelector((state) => state.settings);
 
   return (
-    <div>
-      <h2 className="text-3xl font-bold text-gray-800 mb-6">
-        Settings
-      </h2>
-      
-      <div className="bg-white rounded-xl shadow-md p-6 max-w-2xl">
-        <div className="mb-6">
-          <h3 className="text-xl font-semibold mb-4">Temperature Unit</h3>
-          
-          {/* Radio buttons for unit selection */}
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="tempUnit"
-                value="C"
-                checked={tempUnit === 'C'}
-                onChange={(e) => dispatch(setTempUnit(e.target.value))}
-                className="w-4 h-4"
-              />
-              <span className="text-gray-700">Celsius (°C)</span>
-            </label>
-            
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="tempUnit"
-                value="F"
-                checked={tempUnit === 'F'}
-                onChange={(e) => dispatch(setTempUnit(e.target.value))}
-                className="w-4 h-4"
-              />
-              <span className="text-gray-700">Fahrenheit (°F)</span>
-            </label>
+    <div className="max-w-xl mx-auto">
+      <h2 className="text-3xl font-bold text-gray-800 mb-8">Settings</h2>
+
+      {/* Temperature Unit Section */}
+      <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-1">
+              Temperature Unit
+            </h3>
+            <p className="text-sm text-gray-600">
+              Choose how temperatures are displayed throughout the app
+            </p>
           </div>
-          
-          {/* Toggle button alternative */}
-          <button
-            onClick={() => dispatch(toggleTempUnit())}
-            className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
-          >
-            Toggle to {tempUnit === 'C' ? 'Fahrenheit' : 'Celsius'}
-          </button>
+          <div className="text-4xl">🌡️</div>
         </div>
-        
-        {/* Current setting display */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <p className="text-sm text-gray-600">
-            Current setting: <strong>{tempUnit === 'C' ? 'Celsius' : 'Fahrenheit'}</strong>
-          </p>
+
+        {/* Radio Button Group */}
+        <div className="space-y-3 mb-6">
+          <label className="flex items-center p-4 border-2 rounded-lg cursor-pointer transition hover:bg-gray-50">
+            <input
+              type="radio"
+              name="tempUnit"
+              value="C"
+              checked={tempUnit === "C"}
+              onChange={(e) => dispatch(setTempUnit(e.target.value))}
+              className="w-5 h-5 text-blue-600"
+            />
+            <div className="ml-4 flex-1">
+              <p className="font-semibold text-gray-800">Celsius (°C)</p>
+              <p className="text-sm text-gray-500">Metric system</p>
+            </div>
+            {tempUnit === "C" && (
+              <span className="text-green-600 font-semibold">✓ Active</span>
+            )}
+          </label>
+
+          <label className="flex items-center p-4 border-2 rounded-lg cursor-pointer transition hover:bg-gray-50">
+            <input
+              type="radio"
+              name="tempUnit"
+              value="F"
+              checked={tempUnit === "F"}
+              onChange={(e) => dispatch(setTempUnit(e.target.value))}
+              className="w-5 h-5 text-blue-600"
+            />
+            <div className="ml-4 flex-1">
+              <p className="font-semibold text-gray-800">Fahrenheit (°F)</p>
+              <p className="text-sm text-gray-500">Imperial system</p>
+            </div>
+            {tempUnit === "F" && (
+              <span className="text-green-600 font-semibold">✓ Active</span>
+            )}
+          </label>
+        </div>
+
+        {/* Quick Toggle Button */}
+        <button
+          onClick={() => dispatch(toggleTempUnit())}
+          className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-semibold"
+        >
+          Switch to {tempUnit === "C" ? "Fahrenheit (°F)" : "Celsius (°C)"}
+        </button>
+      </div>
+
+      {/* Favorites Management */}
+      <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-1">
+              Favorites
+            </h3>
+            <p className="text-sm text-gray-600">Manage your saved cities</p>
+          </div>
+          <div className="text-4xl">⭐</div>
+        </div>
+
+        <FavoritesManager />
+      </div>
+
+      {/* Theme Section (Bonus - for future implementation) */}
+      <div className="bg-white rounded-xl shadow-md p-6 mt-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-1">Theme</h3>
+            <p className="text-sm text-gray-600">
+              Customize the appearance of your dashboard
+            </p>
+          </div>
+          <div className="text-4xl">🎨</div>
+        </div>
+
+        <div className="space-y-3">
+          <label className="flex items-center p-4 border-2 rounded-lg cursor-pointer transition hover:bg-gray-50">
+            <input
+              type="radio"
+              name="theme"
+              value="light"
+              checked={theme === "light"}
+              onChange={(e) => dispatch(setTheme(e.target.value))}
+              className="w-5 h-5 text-blue-600"
+            />
+            <div className="ml-4 flex-1">
+              <p className="font-semibold text-gray-800">Light Mode</p>
+              <p className="text-sm text-gray-500">Default bright theme</p>
+            </div>
+            {theme === "light" && (
+              <span className="text-green-600 font-semibold">✓ Active</span>
+            )}
+          </label>
+
+          <label className="flex items-center p-4 border-2 rounded-lg cursor-pointer transition hover:bg-gray-50 opacity-50">
+            <input
+              type="radio"
+              name="theme"
+              value="dark"
+              checked={theme === "dark"}
+              onChange={(e) => dispatch(setTheme(e.target.value))}
+              className="w-5 h-5 text-blue-600"
+              disabled
+            />
+            <div className="ml-4 flex-1">
+              <p className="font-semibold text-gray-800">Dark Mode</p>
+              <p className="text-sm text-gray-500">Coming soon...</p>
+            </div>
+          </label>
         </div>
       </div>
+
     </div>
-  )
+  );
 }
 
-export default Settings
+export default Settings;
