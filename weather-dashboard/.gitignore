@@ -25,4 +25,12 @@ dist-ssr
 
 .env
 .env.local
+.env.production
+
+# production build
+dist/
+
+# dependencies
+node_modules/
+
 
