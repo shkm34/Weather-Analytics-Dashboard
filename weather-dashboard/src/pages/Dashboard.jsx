@@ -21,7 +21,7 @@ function Dashboard() {
 
         const citiesToFetch = favorites.length > 0
           ? favorites.map(city => `${city.lat},${city.lon}`)
-          : ['New Delhi', 'Kolkata', 'Mumbai'];
+          : ['New Delhi', 'Bangalore', 'Hyderabad', 'Mumbai', 'Patna', 'Leh'];
 
         // fetch weather for default cities
         const promises = citiesToFetch.map(coords =>
