@@ -103,7 +103,6 @@ function Dashboard() {
           <WeatherCard
             key={data.location.name}
             weatherData={data}
-            onClick={() => alert(`Clicked ${data.location.name}`)}
           />
         ))}
       </div>

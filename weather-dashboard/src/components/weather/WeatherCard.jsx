@@ -1,9 +1,11 @@
 import React from "react";
 import { useSelector, useDispatch } from 'react-redux';
 import { addFavorite, removeFavorites } from '../../store/slices/favoritesSlice';
+import { useNavigate } from 'react-router-dom';
 
-function WeatherCard({ weatherData, onClick }) {
+function WeatherCard({ weatherData}) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const tempUnit = useSelector((state) => state.settings.tempUnit)
   const favorites = useSelector((state) => state.favorites.cities);
   console.log(favorites);
@@ -35,9 +37,13 @@ function WeatherCard({ weatherData, onClick }) {
     }
   };
 
+  const handleCardNavigate = () => {
+    navigate(`/city/${encodeURIComponent(location.name)}`);
+  };
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleCardNavigate}
       role="button"
       className="
     relative
